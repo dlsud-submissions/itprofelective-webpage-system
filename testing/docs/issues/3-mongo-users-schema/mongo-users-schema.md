@@ -1,6 +1,6 @@
-# Issue #3 — feat(auth): set up MongoDB connection and users schema (Mongoose)
+# Issue #3 - feat(auth): set up MongoDB connection and users schema (Mongoose)
 
-**Epic:** Sprint 1 — Epic A — M01 User Registration & Authentication (Golden Fur MIS, MongoDB finals variant)
+**Epic:** Sprint 1 - Epic A - M01 User Registration & Authentication (Golden Fur MIS, MongoDB finals variant)
 **Branch:** `feat/mongo-users-schema`
 **Owner:** Matthew
 **Depends on:** #2 merged
@@ -9,83 +9,163 @@
 
 | File | Purpose |
 |---|---|
-| [`golden-fur-mongo/database/db.js`](../../../../golden-fur-mongo/database/db.js) | Connects to MongoDB via Mongoose on server start. Logs a clear error and calls `process.exit(1)` if `MONGODB_URI` is missing or the connection fails — the server never runs "half-alive". |
-| [`golden-fur-mongo/models/User.js`](../../../../golden-fur-mongo/models/User.js) | The `users` collection schema: `name`, `email` (required, unique), `passwordHash` (required, `select: false` so it's never returned by a plain query), `role` (enum `user`/`staff`/`admin`, default `'user'`), `isBanned` (default `false`), `createdAt` (default `Date.now`). |
+| [`server/database/db.js`](../../../../server/database/db.js) | Connects to MongoDB via Mongoose on server start. Logs a clear error and calls `process.exit(1)` if `MONGODB_URI` is missing or the connection fails, so the server never runs "half-alive". |
+| [`server/models/User.js`](../../../../server/models/User.js) | The `users` collection schema: `name`, `email` (required, unique), `passwordHash` (required, `select: false` so it is never returned by a plain query), `role` (enum `user`/`staff`/`admin`, default `'user'`), `isBanned` (default `false`), `createdAt` (default `Date.now`). |
 
-This is the single source of truth for the schema — Epic B (M02 Staff Admin Panel) will import this model rather than redefining fields.
+This is the single source of truth for the schema. Epic B (M02 Staff Admin Panel) will import this model rather than redefining fields.
 
-## Prerequisites to verify this issue
+## MongoDB setup from zero
 
-You need a MongoDB server reachable locally. This machine already has one installed as a Windows service (`MongoDB`, checked running on 2026-07-15). If it's ever stopped, start it from an elevated PowerShell with:
-```powershell
-Start-Service MongoDB
+This project expects MongoDB to run on your own computer at:
+
+```text
+mongodb://127.0.0.1:27017/golden_fur_mongo
 ```
 
-You also need [MongoDB Shell (`mongosh`)](https://www.mongodb.com/try/download/shell) to inspect the database directly — it was already installed on this machine (`mongosh 2.9.2`).
+That connection string means:
+
+| Part | Meaning |
+|---|---|
+| `127.0.0.1` | Your own computer. |
+| `27017` | MongoDB's default local port. |
+| `golden_fur_mongo` | The database name this app uses. MongoDB creates it when the first document is saved. |
+
+### Install MongoDB
+
+1. Install **MongoDB Community Server** from the MongoDB website.
+2. During installation, keep the option to run MongoDB as a **Windows Service**.
+3. Install **MongoDB Shell (`mongosh`)** too. This is the command-line tool used to inspect the database.
+4. Open PowerShell.
+5. Check whether MongoDB is running:
+   ```powershell
+   Get-Service MongoDB
+   ```
+6. **Pass:** the `Status` column says `Running`.
+7. If the status says `Stopped`, start it:
+   ```powershell
+   Start-Service MongoDB
+   ```
+8. If PowerShell says access is denied, open PowerShell as Administrator and run `Start-Service MongoDB` again.
+
+### Create the project env file
+
+1. Open PowerShell in the repo root.
+2. Copy the example environment file if `server\.env` does not exist yet:
+   ```powershell
+   if (-not (Test-Path server\.env)) { Copy-Item server\.env.example server\.env }
+   ```
+3. Open `server\.env` and confirm it contains:
+   ```text
+   PORT=4321
+   MONGODB_URI=mongodb://127.0.0.1:27017/golden_fur_mongo
+   JWT_SECRET=replace-with-a-long-random-string
+   JWT_EXPIRES_IN=1d
+   ```
+
+### Navigate MongoDB with mongosh
+
+1. Open a new PowerShell terminal.
+2. Connect to the app database:
+   ```powershell
+   mongosh "mongodb://127.0.0.1:27017/golden_fur_mongo"
+   ```
+3. **Pass:** the prompt changes to something like:
+   ```text
+   golden_fur_mongo>
+   ```
+4. Use these commands inside `mongosh`:
+   ```js
+   db
+   show dbs
+   show collections
+   db.users.find()
+   db.users.find().pretty()
+   exit
+   ```
+
+What those commands mean:
+
+| Command | What it does |
+|---|---|
+| `db` | Shows the database you are currently using. |
+| `show dbs` | Lists databases MongoDB knows about. `golden_fur_mongo` may not appear until a user is registered. |
+| `show collections` | Lists collection names inside the current database. Collections are similar to tables. |
+| `db.users.find()` | Shows documents in the `users` collection. |
+| `db.users.find().pretty()` | Shows users in a more readable layout. |
+| `exit` | Leaves the MongoDB shell. |
 
 ## Acceptance criteria verification
 
 | # | Criterion | How to verify |
 |---|---|---|
-| AC-1 | `database/db.js` connects to MongoDB on server start | Step 1 below |
-| AC-2 | `models/User.js` defines `name`/`email`/`passwordHash`/`role`/`isBanned`/`createdAt` with the constraints/defaults in the DB Design sheet | Step 2 below |
+| AC-1 | `server/database/db.js` connects to MongoDB on server start | Step 1 below |
+| AC-2 | `server/models/User.js` defines `name`/`email`/`passwordHash`/`role`/`isBanned`/`createdAt` with the constraints/defaults in the DB Design sheet | Step 2 below |
 | AC-3 | Connection errors are logged clearly, not silently swallowed | Step 3 below |
 
-### Step 1 — Confirm the server connects to MongoDB on startup
+### Step 1 - Confirm the server connects to MongoDB on startup
 
 1. Open a PowerShell terminal in the repo root.
-2. Run:
+2. Install dependencies if needed:
    ```powershell
-   cd golden-fur-mongo
-   if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-   npm install
-   npm start
+   npm run install:all
    ```
-3. **Pass:** within a second or two you should see:
+3. Start only the backend API:
+   ```powershell
+   npm run mongo:start
    ```
+4. **Pass:** within a second or two you should see:
+   ```text
    [db] Connected to MongoDB (golden_fur_mongo)
-   [server] Golden Fur MIS (Mongo finals variant) listening on port 4000
+   [server] Golden Fur MIS (Mongo finals variant) listening on port 4321
    ```
-4. Press `Ctrl+C` to stop the server when done (or leave it running — Issue #4's doc uses it for the register/login checks).
+5. Press `Ctrl+C` to stop the server when done, or leave it running for Issue #4's register/login checks.
 
-### Step 2 — Confirm the schema shape and defaults directly in the database
+### Step 2 - Confirm the schema shape and defaults directly in the database
 
-This is easiest to observe by registering a user (Issue #4's flow creates a real document) and then inspecting it with `mongosh`. If you've already run the Issue #4 verification steps and have a test account, skip to sub-step 2; otherwise register one first via Issue #4 Step 2.
+This is easiest to observe after registering a user, because registration creates a real MongoDB document. If you have not registered a test user yet, follow Issue #4 Step 2 first.
 
-1. With the server running (Step 1), open a **second** PowerShell terminal and connect to the database:
+1. With the server running, open a second PowerShell terminal.
+2. Connect to the database:
    ```powershell
    mongosh "mongodb://127.0.0.1:27017/golden_fur_mongo"
    ```
-2. Inspect the user document, explicitly requesting the normally-hidden `passwordHash` field to confirm it's stored as a bcrypt hash (not plaintext):
+3. Inspect a user document:
    ```js
    db.users.findOne({ email: "your-test-email@example.com" })
    ```
-3. **Pass:** the returned document has exactly `_id`, `name`, `email`, `passwordHash` (a `$2a$...`/`$2b$...` bcrypt string, never the plaintext password you typed), `role` (`"user"` unless you changed it), `isBanned` (`false`), `createdAt` (a real timestamp), and `__v`.
-4. Confirm the `role` default and enum by trying to insert an invalid role directly — this should be rejected by Mongoose validation, not silently accepted:
+4. **Pass:** the returned document has `_id`, `name`, `email`, `passwordHash`, `role`, `isBanned`, `createdAt`, and `__v`.
+5. **Pass:** `passwordHash` starts with `$2a$` or `$2b$`. It should never be the plaintext password you typed.
+6. **Pass:** `role` is `"user"` unless you intentionally changed it.
+7. **Pass:** `isBanned` is `false` unless you intentionally changed it.
+8. Check that no user has an invalid role:
    ```js
    db.users.find({ role: { $nin: ["user", "staff", "admin"] } }).count()
    ```
-   **Pass:** returns `0` — no document can exist with a role outside the three allowed values, because every write goes through the Mongoose model (Issue #4's controller), never a raw insert.
-5. Type `exit` to leave the `mongosh` shell.
+9. **Pass:** this returns `0`.
+10. Leave `mongosh`:
+    ```js
+    exit
+    ```
 
-### Step 3 — Confirm connection errors are logged clearly, not swallowed
+### Step 3 - Confirm connection errors are logged clearly, not swallowed
 
-1. Stop the server if it's running (`Ctrl+C` in its terminal).
-2. Temporarily break the connection string:
+1. Stop the server if it is running (`Ctrl+C` in its terminal).
+2. Temporarily point the server to a bad MongoDB port:
    ```powershell
-   cd golden-fur-mongo
    $env:MONGODB_URI = "mongodb://127.0.0.1:27099/golden_fur_mongo"
-   node server.js
+   npm run mongo:start
    ```
-   (port `27099` has nothing listening on it, so this simulates an unreachable database.)
-3. **Pass:** within a few seconds you should see a clear, actionable error and the process should exit — for example:
-   ```
+3. **Pass:** within a few seconds you should see a clear error like:
+   ```text
    [db] Failed to connect to MongoDB: connect ECONNREFUSED 127.0.0.1:27099
    ```
-   and the terminal returns to the prompt (the process exited; it did not hang or keep the server "up" with a broken DB layer).
-4. Clear the override and confirm normal startup still works:
+4. **Pass:** the process exits and returns to the prompt. It should not keep the server running with a broken database layer.
+5. Clear the temporary override:
    ```powershell
    Remove-Item Env:\MONGODB_URI
-   node server.js
    ```
-   **Pass:** back to the `[db] Connected to MongoDB (golden_fur_mongo)` message from Step 1.
+6. Confirm normal startup still works:
+   ```powershell
+   npm run mongo:start
+   ```
+7. **Pass:** you see the normal `[db] Connected to MongoDB (golden_fur_mongo)` message again.
