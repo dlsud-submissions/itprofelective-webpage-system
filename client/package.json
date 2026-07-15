@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "_dev": "vite",
+    "_build": "vite build",
+    "_preview": "vite preview",
+    "_typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "lucide-react": "^0.577.0",

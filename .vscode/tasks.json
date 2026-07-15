@@ -1,12 +1,11 @@
 {
   "version": "2.0.0",
   "tasks": [
-    // ── Development ────────────────────────────────────────────
     {
       "label": "💻 Client: Dev",
       "type": "npm",
-      "script": "dev",
-      "path": "client",
+      "script": "dev:client",
+      "path": ".",
       "presentation": {
         "group": "dev-env",
         "reveal": "always",
@@ -17,8 +16,8 @@
     {
       "label": "🖥️ Server: Dev",
       "type": "npm",
-      "script": "dev",
-      "path": "server",
+      "script": "dev:server",
+      "path": ".",
       "presentation": {
         "group": "dev-env",
         "reveal": "always",
@@ -34,104 +33,50 @@
         "reveal": "silent"
       }
     },
-
-    // ── Testing ────────────────────────────────────────────────
     {
-      "label": "🧪 Client: Tests (watch)",
+      "label": "🍃 MongoDB: Start API",
       "type": "npm",
-      "script": "test:watch",
-      "path": "client",
+      "script": "mongo:start",
+      "path": ".",
       "presentation": {
-        "group": "testing",
+        "group": "mongodb",
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "🛠️ Setup: Install All",
+      "type": "npm",
+      "script": "install:all",
+      "path": ".",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🏗️ Client: Build",
+      "type": "npm",
+      "script": "build",
+      "path": ".",
+      "presentation": {
+        "group": "build",
         "panel": "dedicated",
         "reveal": "always"
       }
     },
     {
-      "label": "🧪 Client: Tests (run once)",
+      "label": "🧪 Client: Typecheck",
       "type": "npm",
-      "script": "test:run",
-      "path": "client",
+      "script": "typecheck",
+      "path": ".",
       "presentation": {
-        "group": "testing",
+        "group": "quality",
         "panel": "dedicated",
         "reveal": "always"
       }
     },
-    {
-      "label": "🧪 Server: Tests (watch)",
-      "type": "npm",
-      "script": "test:watch",
-      "path": "server",
-      "presentation": {
-        "group": "testing",
-        "panel": "dedicated",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "🧪 Server: Tests (run once)",
-      "type": "npm",
-      "script": "test",
-      "path": "server",
-      "presentation": {
-        "group": "testing",
-        "panel": "dedicated",
-        "reveal": "always"
-      }
-    },
-
-    // ── Linting ────────────────────────────────────────────────
-    {
-      "label": "🔍 Client: Lint (check)",
-      "type": "npm",
-      "script": "lint",
-      "path": "client",
-      "presentation": {
-        "group": "quality",
-        "panel": "dedicated",
-        "reveal": "always"
-      },
-      "problemMatcher": ["$eslint-stylish"]
-    },
-    {
-      "label": "🔍 Server: Lint (check)",
-      "type": "npm",
-      "script": "lint",
-      "path": "server",
-      "presentation": {
-        "group": "quality",
-        "panel": "dedicated",
-        "reveal": "always"
-      },
-      "problemMatcher": ["$eslint-stylish"]
-    },
-    {
-      "label": "🔧 Client: Lint (fix)",
-      "type": "npm",
-      "script": "lint:fix",
-      "path": "client",
-      "presentation": {
-        "group": "quality",
-        "panel": "dedicated",
-        "reveal": "always"
-      },
-      "problemMatcher": ["$eslint-stylish"]
-    },
-    {
-      "label": "🔧 Server: Lint (fix)",
-      "type": "npm",
-      "script": "lint:fix",
-      "path": "server",
-      "presentation": {
-        "group": "quality",
-        "panel": "dedicated",
-        "reveal": "always"
-      },
-      "problemMatcher": ["$eslint-stylish"]
-    },
-
-    // ── Formatting ─────────────────────────────────────────────
     {
       "label": "🎨 Format: Check",
       "type": "npm",
@@ -144,7 +89,7 @@
       }
     },
     {
-      "label": "🎨 Format: Fix (write)",
+      "label": "🎨 Format: Fix",
       "type": "npm",
       "script": "format",
       "path": ".",
@@ -153,176 +98,6 @@
         "panel": "dedicated",
         "reveal": "always"
       }
-    },
-
-    // ── CI Verify (mirrors all 6 CI jobs locally) ──────────────
-    {
-      "label": "✅ CI: Verify All",
-      "dependsOn": [
-        "🧪 Client: Tests (run once)",
-        "🧪 Server: Tests (run once)",
-        "🔍 Client: Lint (check)",
-        "🔍 Server: Lint (check)",
-        "🎨 Format: Check",
-        "🏗️ Client: Build"
-      ],
-      "dependsOrder": "parallel",
-      "presentation": {
-        "reveal": "silent"
-      }
-    },
-
-    // ── Build ──────────────────────────────────────────────────
-    {
-      "label": "🏗️ Client: Build",
-      "type": "npm",
-      "script": "build",
-      "path": "client",
-      "presentation": {
-        "group": "build",
-        "panel": "dedicated",
-        "reveal": "always"
-      }
-    },
-
-    // ── Setup ──────────────────────────────────────────────────
-    {
-      "label": "🛠️ Setup: Install All",
-      "type": "npm",
-      "script": "install:all",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      }
-    },
-
-    // ── Supabase ────────────────────────────────────────────────
-    {
-      "label": "🔐 Supabase: Login",
-      "type": "npm",
-      "script": "supabase:login",
-      "presentation": {
-        "group": "supabase",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "🔗 Supabase: Link Project",
-      "type": "npm",
-      "script": "supabase:link",
-      "presentation": {
-        "group": "supabase",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "📤 Supabase: Push Migrations",
-      "type": "npm",
-      "script": "supabase:push",
-      "presentation": {
-        "group": "supabase",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "📥 Supabase: Pull Remote State",
-      "type": "npm",
-      "script": "supabase:pull",
-      "presentation": {
-        "group": "supabase",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "📊 Supabase: Check Migration Status",
-      "type": "npm",
-      "script": "supabase:status",
-      "presentation": {
-        "group": "supabase",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "🔧 Supabase: Reset Local DB",
-      "type": "npm",
-      "script": "supabase:reset",
-      "presentation": {
-        "group": "supabase",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "⚠️ Supabase: Reset REMOTE DB (destructive)",
-      "type": "npm",
-      "script": "supabase:reset:remote",
-      "detail": "Wipes and re-seeds the LINKED remote project (supabase db reset --linked) - not local. Confirm the linked project before running.",
-      "presentation": {
-        "group": "supabase",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "🩹 Supabase: Repair Migration History",
-      "type": "shell",
-      "command": "npm run supabase:repair -- --status ${input:supabaseMigrationStatus} ${input:supabaseMigrationVersion} --linked",
-      "presentation": {
-        "group": "supabase",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-
-    // ── Seed Data (Issue #38 - grouped by module) ──────────────
-    {
-      "label": "🌱 Seed: Module 1 - Staff Auth",
-      "type": "npm",
-      "script": "seed:module-1",
-      "presentation": {
-        "group": "seed",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "🌱 Seed: Module 2 - Customers & Pets",
-      "type": "npm",
-      "script": "seed:module-2",
-      "presentation": {
-        "group": "seed",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    },
-    {
-      "label": "🌱 Seed: All Modules",
-      "type": "npm",
-      "script": "seed:all",
-      "presentation": {
-        "group": "seed",
-        "panel": "shared",
-        "reveal": "always"
-      }
-    }
-  ],
-  "inputs": [
-    {
-      "id": "supabaseMigrationStatus",
-      "type": "pickString",
-      "description": "Mark the migration version as applied (already run on remote) or reverted (never ran)?",
-      "options": ["applied", "reverted"],
-      "default": "applied"
-    },
-    {
-      "id": "supabaseMigrationVersion",
-      "type": "promptString",
-      "description": "Migration version to repair — the digits before the first underscore in the filename, e.g. 20260701010 for 20260701010_m01_drop_branches_break_window.sql"
     }
   ]
 }

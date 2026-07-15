@@ -5,13 +5,8 @@
   "description": "Golden Fur MIS - MongoDB finals variant (M01 User Registration & Authentication, M02 Staff Admin Panel)",
   "main": "server.js",
   "scripts": {
-    "=== ORCHESTRATION ===": "",
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "node --watch server.js",
-    "dev:client": "npm --prefix client run dev",
-    "start": "node server.js",
-    "=== SETUP ===": "",
-    "install:all": "npm install && npm --prefix client install"
+    "_dev": "node --watch server.js",
+    "_start": "node server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -21,7 +16,5 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.0"
   },
-  "devDependencies": {
-    "concurrently": "^9.2.3"
-  }
+  "devDependencies": {}
 }
