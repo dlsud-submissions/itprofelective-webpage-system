@@ -19,7 +19,7 @@ app.use('/', authRoutes);
 async function start() {
   await connectDB();
 
-  const port = process.env.PORT || 4000;
+  const port = process.env.PORT || 4321;
   app.listen(port, () => {
     console.log(`[server] Golden Fur MIS (Mongo finals variant) listening on port ${port}`);
   });
