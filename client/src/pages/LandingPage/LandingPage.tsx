@@ -13,7 +13,7 @@ import step3 from '../../assets/step3.png';
 import step4 from '../../assets/step4.png';
 import './LandingPage.module.css';
 
-export default function GoldenFurLanding() {
+export function LandingPage() {
   useEffect(() => {
     const navToggle = document.getElementById(
       'navToggle'
@@ -50,7 +50,7 @@ export default function GoldenFurLanding() {
       chars.forEach((char, i) => {
         const span = document.createElement('span');
         span.className = 'char';
-        span.textContent = char === ' ' ? '\u00A0' : char;
+        span.textContent = char === ' ' ? ' ' : char;
 
         let delay: number;
         if (direction === 'left') {
@@ -743,7 +743,7 @@ export default function GoldenFurLanding() {
             style={{ gap: 'clamp(8px, 1.5vw, 12px)', flexWrap: 'wrap' }}
           >
             <Link
-              to="/signup"
+              to="/login"
               className="btn btn-outline"
               style={{ whiteSpace: 'nowrap' }}
             >

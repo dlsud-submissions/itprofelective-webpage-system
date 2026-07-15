@@ -8,13 +8,4 @@
   --space-5: 40px; /* XXL */
   --space-6: 48px; /* XXXL */
   --space-8: 64px; /* Huge */
-
-  /* Semantic spacing for consistency */
-  --content-gap: var(--space-2);
-  --section-gap: var(--space-4);
-
-  /* Layout sizing (Sprint 1 Epic B - StaffCard/AvatarUploader) */
-  --staff-card-min-width: 260px;
-  --avatar-size-card: 48px;
-  --avatar-size-profile: 96px;
 }
