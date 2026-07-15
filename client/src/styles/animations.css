@@ -1,5 +1,3 @@
-/* --- Keyframes --- */
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -28,8 +26,6 @@
     transform: rotate(360deg);
   }
 }
-
-/* --- Utility Classes --- */
 
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out forwards;
