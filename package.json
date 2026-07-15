@@ -1,11 +1,11 @@
 {
-  "name": "golden-fur",
+  "name": "itprofelective-webpage-system",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "keywords": [],
-  "author": "the-golden-fur",
+  "author": "dlsud-submissions",
   "license": "MIT",
   "scripts": {
     "=== ORCHESTRATION ===": "",
@@ -42,10 +42,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/the-golden-fur/golden-fur.git"
+    "url": "git+https://github.com/dlsud-submissions/itprofelective-webpage-system.git"
   },
   "bugs": {
-    "url": "https://github.com/the-golden-fur/golden-fur/issues"
+    "url": "https://github.com/dlsud-submissions/itprofelective-webpage-system/issues"
   },
-  "homepage": "https://github.com/the-golden-fur/golden-fur#readme"
+  "homepage": "https://github.com/dlsud-submissions/itprofelective-webpage-system#readme"
 }
