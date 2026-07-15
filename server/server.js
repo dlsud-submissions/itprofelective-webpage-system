@@ -4,6 +4,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./database/db');
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(cookieParser());
 // these routes back here -- see client/vite.config.ts). This process is
 // the JSON API only.
 app.use('/', authRoutes);
+app.use('/admin', adminRoutes);
 
 async function start() {
   await connectDB();
