@@ -1,0 +1,207 @@
+{
+  "info": {
+    "name": "Issue #4 - Register/Login Routes (golden-fur-mongo)",
+    "description": "Golden Fur MIS - MongoDB finals variant - Epic A, Issue #4. Verifies POST /register, POST /login, requireAuth middleware (GET /me), and POST /logout.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:4000" },
+    { "key": "testEmail", "value": "postman-test@example.com" },
+    { "key": "testPassword", "value": "correcthorse123" }
+  ],
+  "item": [
+    {
+      "name": "1. GET /register (serves the form)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/register"
+      }
+    },
+    {
+      "name": "2. POST /register (new user, AC-1)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('Response has user with role=user', () => {",
+              "  pm.expect(body.user).to.exist;",
+              "  pm.expect(body.user.role).to.eql('user');",
+              "  pm.expect(body.user.isBanned).to.eql(false);",
+              "});",
+              "pm.test('passwordHash is never returned', () => {",
+              "  pm.expect(body.user.passwordHash).to.be.undefined;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman Test User\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/register"
+      }
+    },
+    {
+      "name": "3. POST /register (duplicate email, AC-2)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));",
+              "pm.test('Clear error message, not a raw Mongo error', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.error).to.be.a('string');",
+              "  pm.expect(body.error.toLowerCase()).to.not.include('e11000');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman Test User\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/register"
+      }
+    },
+    {
+      "name": "4. POST /login (wrong password)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+              "pm.test('Generic invalid-credentials message', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.error).to.eql('Invalid email or password.');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"wrong-password\"\n}"
+        },
+        "url": "{{baseUrl}}/login"
+      }
+    },
+    {
+      "name": "5. POST /login (correct creds, AC-3)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Response includes a session/JWT', () => {",
+              "  pm.expect(body.token).to.be.a('string');",
+              "});",
+              "pm.test('token cookie was set', () => {",
+              "  pm.expect(pm.cookies.has('token')).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/login"
+      }
+    },
+    {
+      "name": "6. GET /me (authenticated, AC-5)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Returns the logged-in user', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.user.email).to.eql(pm.collectionVariables.get('testEmail'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/me"
+      }
+    },
+    {
+      "name": "7. POST /logout",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/logout"
+      }
+    },
+    {
+      "name": "8. GET /me (no session, AC-5)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 401 after logout', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/me"
+      }
+    }
+  ]
+}
