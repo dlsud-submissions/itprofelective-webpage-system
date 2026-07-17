@@ -21,6 +21,8 @@ export default defineConfig(({ mode }) => {
         '/login': { target: backendTarget, changeOrigin: true },
         '/logout': { target: backendTarget, changeOrigin: true },
         '/me': { target: backendTarget, changeOrigin: true },
+        '/services': { target: backendTarget, changeOrigin: true },
+        '/products': { target: backendTarget, changeOrigin: true },
       },
     },
   };

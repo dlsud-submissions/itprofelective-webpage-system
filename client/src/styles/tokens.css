@@ -37,4 +37,16 @@
   --radius-lg: 20px;
   --radius-xl: 25px;
   --radius-pill: 50px;
+
+  /* Epic D — catalog badges (isActive status pills, staff/admin view only) */
+  --color-badge-active-bg: #eaf6eb;
+  --color-badge-active-text: #2f6f3b;
+  --color-badge-inactive-bg: #fde9e6;
+  --color-badge-inactive-text: #b42318;
+
+  /* Epic D — catalog grid (services.html/products.html equivalent) */
+  --catalog-card-min-width: 220px;
+  --catalog-grid-gap: var(--space-2);
+  --catalog-card-radius: var(--radius-md);
+  --catalog-card-shadow: var(--shadow-card);
 }
