@@ -1,0 +1,433 @@
+{
+  "info": {
+    "name": "Issue #9 - Services Catalog",
+    "description": "Verifies Epic D's M03 Services Catalog API: public active-only listing, staff/admin-only create/update, no hard-delete (isActive:false instead), and rejection of non-staff writers.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:4321" },
+    { "key": "staffEmail", "value": "services-catalog-staff@example.com" },
+    { "key": "staffPassword", "value": "correcthorse123" },
+    { "key": "userEmail", "value": "services-catalog-user@example.com" },
+    { "key": "userPassword", "value": "correcthorse123" },
+    { "key": "staffToken", "value": "" },
+    { "key": "userToken", "value": "" },
+    { "key": "serviceId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Register staff-to-be test user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201 or duplicate 409', () => pm.expect([201, 409]).to.include(pm.response.code));",
+              "if (pm.response.code === 201) {",
+              "  pm.test('Starts as role user', () => pm.expect(pm.response.json().user.role).to.eql('user'));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Services Catalog Staff\",\n  \"email\": \"{{staffEmail}}\",\n  \"password\": \"{{staffPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/register"
+      }
+    },
+    {
+      "name": "2. Register plain (non-staff) test user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201 or duplicate 409', () => pm.expect([201, 409]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Services Catalog User\",\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/register"
+      }
+    },
+    {
+      "name": "3. Login plain user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('userToken', pm.response.json().token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/login"
+      }
+    },
+    {
+      "name": "4. Non-staff cannot create a service",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 403', () => pm.response.to.have.status(403));",
+              "pm.test('No service returned', () => pm.expect(pm.response.json().service).to.be.undefined);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{userToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Should Be Rejected\",\n  \"price\": 10\n}"
+        },
+        "url": "{{baseUrl}}/services"
+      }
+    },
+    {
+      "name": "5. Login staff user (after manual DB promotion)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('staffToken', body.token);",
+              "pm.test('Role is staff after seed step', () => pm.expect(body.user.role).to.eql('staff'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{staffEmail}}\",\n  \"password\": \"{{staffPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/login"
+      }
+    },
+    {
+      "name": "6. Logout to clear the staff session cookie",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/logout",
+        "description": "Clears the httpOnly cookie the previous login set. Without this, Postman/Newman's cookie jar would keep sending the staff session cookie on every later request, silently overriding whichever Authorization: Bearer header a request sets (requireAuth checks the cookie first) -- e.g. request 11's plain-user token would otherwise be ignored in favor of the leftover staff cookie."
+      }
+    },
+    {
+      "name": "7. Reject create with missing name/price",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Missing name and price\"\n}"
+        },
+        "url": "{{baseUrl}}/services"
+      }
+    },
+    {
+      "name": "8. Staff creates a service",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('Service fields are present', () => {",
+              "  pm.expect(body.service.name).to.eql('Postman Test Grooming Package');",
+              "  pm.expect(body.service.price).to.eql(45);",
+              "  pm.expect(body.service.category).to.eql('Grooming');",
+              "  pm.expect(body.service.isActive).to.eql(true);",
+              "});",
+              "pm.collectionVariables.set('serviceId', body.service.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman Test Grooming Package\",\n  \"description\": \"Bath, trim, nails, ears\",\n  \"price\": 45,\n  \"category\": \"Grooming\"\n}"
+        },
+        "url": "{{baseUrl}}/services"
+      }
+    },
+    {
+      "name": "9. Public GET /services includes the new active service",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Returns a services array', () => pm.expect(body.services).to.be.an('array'));",
+              "const created = body.services.find(s => s.id === pm.collectionVariables.get('serviceId'));",
+              "pm.test('New service is listed and active', () => {",
+              "  pm.expect(created).to.exist;",
+              "  pm.expect(created.isActive).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/services"
+      }
+    },
+    {
+      "name": "10. Staff edits the service",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Price updated', () => pm.expect(pm.response.json().service.price).to.eql(50));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 50\n}"
+        },
+        "url": "{{baseUrl}}/services/{{serviceId}}"
+      }
+    },
+    {
+      "name": "11. Non-staff cannot edit the service",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{userToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 1\n}"
+        },
+        "url": "{{baseUrl}}/services/{{serviceId}}"
+      }
+    },
+    {
+      "name": "12. Staff deactivates the service (no hard delete)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('isActive is false', () => pm.expect(pm.response.json().service.isActive).to.eql(false));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": false\n}"
+        },
+        "url": "{{baseUrl}}/services/{{serviceId}}"
+      }
+    },
+    {
+      "name": "13. Staff GET /services still includes the deactivated item",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const found = body.services.find(s => s.id === pm.collectionVariables.get('serviceId'));",
+              "pm.test('Staff/admin still see the deactivated item, marked inactive', () => {",
+              "  pm.expect(found).to.exist;",
+              "  pm.expect(found.isActive).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{staffToken}}" }],
+        "url": "{{baseUrl}}/services",
+        "description": "Uses attachUserIfPresent (optional auth) on GET /services -- an authenticated staff/admin caller gets every document, not just isActive:true, so they have a way to find and reactivate what they deactivated."
+      }
+    },
+    {
+      "name": "14. Public GET /services no longer includes it",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const found = body.services.find(s => s.id === pm.collectionVariables.get('serviceId'));",
+              "pm.test('Deactivated service is hidden from public list', () => pm.expect(found).to.be.undefined);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/services"
+      }
+    },
+    {
+      "name": "15. Invalid service id returns 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 5\n}"
+        },
+        "url": "{{baseUrl}}/services/not-a-valid-object-id"
+      }
+    },
+    {
+      "name": "16. Staff reactivates the service",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('isActive is true again', () => pm.expect(pm.response.json().service.isActive).to.eql(true));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": true\n}"
+        },
+        "url": "{{baseUrl}}/services/{{serviceId}}",
+        "description": "Same PATCH route used to deactivate -- proves the action is reversible, matching Issue #11's 'deactivate' controls implying a way back."
+      }
+    }
+  ]
+}

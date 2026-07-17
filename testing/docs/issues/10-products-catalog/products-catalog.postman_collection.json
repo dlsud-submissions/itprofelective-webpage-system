@@ -1,0 +1,434 @@
+{
+  "info": {
+    "name": "Issue #10 - Products Catalog",
+    "description": "Verifies Epic D's M04 Products Catalog API: public active-only listing, staff/admin-only create/update, no hard-delete (isActive:false instead), and rejection of non-staff writers.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:4321" },
+    { "key": "staffEmail", "value": "products-catalog-staff@example.com" },
+    { "key": "staffPassword", "value": "correcthorse123" },
+    { "key": "userEmail", "value": "products-catalog-user@example.com" },
+    { "key": "userPassword", "value": "correcthorse123" },
+    { "key": "staffToken", "value": "" },
+    { "key": "userToken", "value": "" },
+    { "key": "productId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Register staff-to-be test user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201 or duplicate 409', () => pm.expect([201, 409]).to.include(pm.response.code));",
+              "if (pm.response.code === 201) {",
+              "  pm.test('Starts as role user', () => pm.expect(pm.response.json().user.role).to.eql('user'));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Products Catalog Staff\",\n  \"email\": \"{{staffEmail}}\",\n  \"password\": \"{{staffPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/register"
+      }
+    },
+    {
+      "name": "2. Register plain (non-staff) test user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201 or duplicate 409', () => pm.expect([201, 409]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Products Catalog User\",\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/register"
+      }
+    },
+    {
+      "name": "3. Login plain user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('userToken', pm.response.json().token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/login"
+      }
+    },
+    {
+      "name": "4. Non-staff cannot create a product",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 403', () => pm.response.to.have.status(403));",
+              "pm.test('No product returned', () => pm.expect(pm.response.json().product).to.be.undefined);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{userToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Should Be Rejected\",\n  \"price\": 10\n}"
+        },
+        "url": "{{baseUrl}}/products"
+      }
+    },
+    {
+      "name": "5. Login staff user (after manual DB promotion)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('staffToken', body.token);",
+              "pm.test('Role is staff after seed step', () => pm.expect(body.user.role).to.eql('staff'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{staffEmail}}\",\n  \"password\": \"{{staffPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/login"
+      }
+    },
+    {
+      "name": "6. Logout to clear the staff session cookie",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/logout",
+        "description": "Clears the httpOnly cookie the previous login set. Without this, Postman/Newman's cookie jar would keep sending the staff session cookie on every later request, silently overriding whichever Authorization: Bearer header a request sets (requireAuth checks the cookie first) -- e.g. request 11's plain-user token would otherwise be ignored in favor of the leftover staff cookie."
+      }
+    },
+    {
+      "name": "7. Reject create with missing name/price",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Missing name and price\"\n}"
+        },
+        "url": "{{baseUrl}}/products"
+      }
+    },
+    {
+      "name": "8. Staff creates a product",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('Product fields are present', () => {",
+              "  pm.expect(body.product.name).to.eql('Postman Test Dog Food');",
+              "  pm.expect(body.product.price).to.eql(32.5);",
+              "  pm.expect(body.product.stock).to.eql(18);",
+              "  pm.expect(body.product.isActive).to.eql(true);",
+              "});",
+              "pm.collectionVariables.set('productId', body.product.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman Test Dog Food\",\n  \"description\": \"Grain-free adult formula\",\n  \"price\": 32.5,\n  \"stock\": 18\n}"
+        },
+        "url": "{{baseUrl}}/products"
+      }
+    },
+    {
+      "name": "9. Public GET /products includes the new active product",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Returns a products array', () => pm.expect(body.products).to.be.an('array'));",
+              "const created = body.products.find(p => p.id === pm.collectionVariables.get('productId'));",
+              "pm.test('New product is listed and active', () => {",
+              "  pm.expect(created).to.exist;",
+              "  pm.expect(created.isActive).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/products"
+      }
+    },
+    {
+      "name": "10. Staff edits the product (including stock)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('Stock updated', () => pm.expect(body.product.stock).to.eql(12));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stock\": 12\n}"
+        },
+        "url": "{{baseUrl}}/products/{{productId}}"
+      }
+    },
+    {
+      "name": "11. Non-staff cannot edit the product",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{userToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stock\": 999\n}"
+        },
+        "url": "{{baseUrl}}/products/{{productId}}"
+      }
+    },
+    {
+      "name": "12. Staff deactivates the product (no hard delete)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('isActive is false', () => pm.expect(pm.response.json().product.isActive).to.eql(false));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": false\n}"
+        },
+        "url": "{{baseUrl}}/products/{{productId}}"
+      }
+    },
+    {
+      "name": "13. Staff GET /products still includes the deactivated item",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const found = body.products.find(p => p.id === pm.collectionVariables.get('productId'));",
+              "pm.test('Staff/admin still see the deactivated item, marked inactive', () => {",
+              "  pm.expect(found).to.exist;",
+              "  pm.expect(found.isActive).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{staffToken}}" }],
+        "url": "{{baseUrl}}/products",
+        "description": "Uses attachUserIfPresent (optional auth) on GET /products -- an authenticated staff/admin caller gets every document, not just isActive:true, so they have a way to find and reactivate what they deactivated."
+      }
+    },
+    {
+      "name": "14. Public GET /products no longer includes it",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const found = body.products.find(p => p.id === pm.collectionVariables.get('productId'));",
+              "pm.test('Deactivated product is hidden from public list', () => pm.expect(found).to.be.undefined);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/products"
+      }
+    },
+    {
+      "name": "15. Invalid product id returns 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stock\": 5\n}"
+        },
+        "url": "{{baseUrl}}/products/not-a-valid-object-id"
+      }
+    },
+    {
+      "name": "16. Staff reactivates the product",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('isActive is true again', () => pm.expect(pm.response.json().product.isActive).to.eql(true));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": true\n}"
+        },
+        "url": "{{baseUrl}}/products/{{productId}}",
+        "description": "Same PATCH route used to deactivate -- proves the action is reversible, matching Issue #11's 'deactivate' controls implying a way back."
+      }
+    }
+  ]
+}
