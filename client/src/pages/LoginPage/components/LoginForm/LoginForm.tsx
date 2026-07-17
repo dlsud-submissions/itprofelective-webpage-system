@@ -3,6 +3,7 @@ import { Lock, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../../../shared/auth/useAuth';
 import { login } from '../../../../shared/auth/api/auth.api';
+import { dashboardPathForRole } from '../../../../shared/auth/dashboardPath';
 import { loginSchema } from '../../../../modules/validators/auth.validator';
 import styles from './LoginForm.module.css';
 
@@ -35,7 +36,7 @@ export function LoginForm() {
     }
 
     await refresh();
-    navigate('/', { replace: true });
+    navigate(dashboardPathForRole(result.data.user.role), { replace: true });
   };
 
   return (
