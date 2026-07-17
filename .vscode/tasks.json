@@ -46,6 +46,39 @@
       }
     },
     {
+      "label": "🧹 MongoDB: Reset DB",
+      "type": "npm",
+      "script": "db:reset",
+      "path": ".",
+      "presentation": {
+        "group": "mongodb",
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🗂️ MongoDB: Apply Schema",
+      "type": "npm",
+      "script": "db:schema",
+      "path": ".",
+      "presentation": {
+        "group": "mongodb",
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🌱 MongoDB: Seed",
+      "type": "npm",
+      "script": "db:seed",
+      "path": ".",
+      "presentation": {
+        "group": "mongodb",
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
       "label": "🛠️ Setup: Install All",
       "type": "npm",
       "script": "install:all",

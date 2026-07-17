@@ -1,0 +1,147 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
+const Service = require('../models/Service');
+const Product = require('../models/Product');
+
+const SALT_ROUNDS = 10;
+
+const SAMPLE_SERVICES = [
+  {
+    name: 'Basic Bath & Brush',
+    description: 'Bath, blow-dry, and brush-out for a clean, fresh coat.',
+    price: 25,
+    category: 'Grooming',
+  },
+  {
+    name: 'Full Groom Package',
+    description: 'Bath, trim, nail clipping, and ear cleaning.',
+    price: 45,
+    category: 'Grooming',
+  },
+  {
+    name: 'Wellness Checkup',
+    description: 'General health exam and vaccination review.',
+    price: 35,
+    category: 'Veterinary',
+  },
+];
+
+const SAMPLE_PRODUCTS = [
+  {
+    name: 'Premium Dog Food (5kg)',
+    description: 'Grain-free adult formula.',
+    price: 32.5,
+    stock: 20,
+  },
+  {
+    name: 'Cat Litter (10L)',
+    description: 'Clumping, low-dust formula.',
+    price: 18,
+    stock: 15,
+  },
+  {
+    name: 'Dog Shampoo',
+    description: 'Gentle oatmeal formula for sensitive skin.',
+    price: 10,
+    stock: 30,
+  },
+];
+
+async function seedUser({ name, email, password, role }) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const existing = await User.findOne({ email: normalizedEmail });
+
+  if (existing) {
+    if (existing.role !== role) {
+      existing.role = role;
+      existing.isBanned = false;
+      await existing.save();
+      console.log(
+        `[db:seed] Promoted existing user to ${role}: ${normalizedEmail}`
+      );
+    } else {
+      console.log(
+        `[db:seed] ${role} account already exists: ${normalizedEmail}`
+      );
+    }
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+  await User.create({
+    name,
+    email: normalizedEmail,
+    passwordHash,
+    role,
+    isBanned: false,
+  });
+  console.log(`[db:seed] Created ${role} account: ${normalizedEmail}`);
+  console.log(`[db:seed] Password: ${password}`);
+}
+
+async function seedServices() {
+  for (const service of SAMPLE_SERVICES) {
+    const existing = await Service.findOne({ name: service.name });
+    if (existing) {
+      console.log(`[db:seed] Service already exists: ${service.name}`);
+      continue;
+    }
+    await Service.create(service);
+    console.log(`[db:seed] Created service: ${service.name}`);
+  }
+}
+
+async function seedProducts() {
+  for (const product of SAMPLE_PRODUCTS) {
+    const existing = await Product.findOne({ name: product.name });
+    if (existing) {
+      console.log(`[db:seed] Product already exists: ${product.name}`);
+      continue;
+    }
+    await Product.create(product);
+    console.log(`[db:seed] Created product: ${product.name}`);
+  }
+}
+
+async function seedDb() {
+  const uri = process.env.MONGODB_URI;
+
+  if (!uri) {
+    console.error(
+      '[db:seed] MONGODB_URI is not set. Copy server/.env.example to server/.env and configure it.'
+    );
+    process.exit(1);
+  }
+
+  await mongoose.connect(uri);
+  console.log(`[db:seed] Connected to MongoDB (${mongoose.connection.name})`);
+
+  await seedUser({
+    name: process.env.SEED_ADMIN_NAME || 'Golden Fur Admin',
+    email: process.env.SEED_ADMIN_EMAIL || 'admin@goldenfur.local',
+    password: process.env.SEED_ADMIN_PASSWORD || 'ChangeMe123!',
+    role: 'admin',
+  });
+
+  await seedUser({
+    name: process.env.SEED_STAFF_NAME || 'Golden Fur Staff',
+    email: process.env.SEED_STAFF_EMAIL || 'staff@goldenfur.local',
+    password: process.env.SEED_STAFF_PASSWORD || 'ChangeMe123!',
+    role: 'staff',
+  });
+
+  await seedServices();
+  await seedProducts();
+
+  await mongoose.disconnect();
+  console.log('[db:seed] Done.');
+}
+
+seedDb().catch((err) => {
+  console.error('[db:seed] Failed:', err.message);
+  process.exit(1);
+});
