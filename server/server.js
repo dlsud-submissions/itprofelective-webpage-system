@@ -5,6 +5,8 @@ const cookieParser = require('cookie-parser');
 const connectDB = require('./database/db');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const serviceRoutes = require('./routes/serviceRoutes');
+const productRoutes = require('./routes/productRoutes');
 
 const app = express();
 
@@ -17,6 +19,8 @@ app.use(cookieParser());
 // the JSON API only.
 app.use('/', authRoutes);
 app.use('/admin', adminRoutes);
+app.use('/', serviceRoutes);
+app.use('/', productRoutes);
 
 async function start() {
   await connectDB();
