@@ -7,16 +7,16 @@
 
 ## What was built
 
-| File | Purpose |
-|---|---|
-| [`golden-fur-mongo/controllers/authController.js`](../../../../golden-fur-mongo/controllers/authController.js) | `register` (bcrypt-hashes the password, rejects duplicate emails with a clean message, defaults `role: 'user'`), `login` (verifies credentials, checks `isBanned` **after** password verification, issues a JWT), `logout`. |
-| [`golden-fur-mongo/routes/authRoutes.js`](../../../../golden-fur-mongo/routes/authRoutes.js) | `GET/POST /register`, `GET/POST /login`, `POST /logout`, and `GET /me` (a small protected route added purely to demonstrate `requireAuth` works and is reusable — Epic B's admin routes will sit behind the same middleware). |
-| [`golden-fur-mongo/middleware/requireAuth.js`](../../../../golden-fur-mongo/middleware/requireAuth.js) | Verifies the JWT (from the `token` cookie or an `Authorization: Bearer` header), loads the user, attaches `req.user`, or rejects with `401`. |
+| File                                                                                                                                                            | Purpose                                                                                                                                                                                                                            |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`golden-fur-mongo/controllers/authController.js`](../../../../golden-fur-mongo/controllers/authController.js)                                                  | `register` (bcrypt-hashes the password, rejects duplicate emails with a clean message, defaults `role: 'user'`), `login` (verifies credentials, checks `isBanned` **after** password verification, issues a JWT), `logout`.        |
+| [`golden-fur-mongo/routes/authRoutes.js`](../../../../golden-fur-mongo/routes/authRoutes.js)                                                                    | `GET/POST /register`, `GET/POST /login`, `POST /logout`, and `GET /me` (a small protected route added purely to demonstrate `requireAuth` works and is reusable — Epic B's admin routes will sit behind the same middleware).      |
+| [`golden-fur-mongo/middleware/requireAuth.js`](../../../../golden-fur-mongo/middleware/requireAuth.js)                                                          | Verifies the JWT (from the `token` cookie or an `Authorization: Bearer` header), loads the user, attaches `req.user`, or rejects with `401`.                                                                                       |
 | [`golden-fur-mongo/views/register.html`](../../../../golden-fur-mongo/views/register.html), [`views/login.html`](../../../../golden-fur-mongo/views/login.html) | Plain, unstyled HTML forms (native `<form method="POST">` submission). Styling and JS-enhanced `fetch()` submission are out of scope for this issue — they belong to the later Epic C issue that also builds the admin panel view. |
 
 ### Design decision: JWT, not sessions
 
-The Guide left the JWT-vs-`express-session`+`connect-mongo` choice open for team confirmation. This implementation uses a **stateless JWT**, stored in an `httpOnly` cookie (`token`) and also returned in the JSON response body for Postman/API convenience. This is the simpler of the two documented options and matches the DB Design sheet's note that the `sessions` collection is *"not created at all if JWT is chosen."* No `sessions` collection exists in this database. If the team prefers `express-session` + `connect-mongo` instead, `authController.js`/`requireAuth.js` are the only two files that would need to change — the route surface (`POST /register`, `POST /login`, `GET /me`) would stay identical.
+The Guide left the JWT-vs-`express-session`+`connect-mongo` choice open for team confirmation. This implementation uses a **stateless JWT**, stored in an `httpOnly` cookie (`token`) and also returned in the JSON response body for Postman/API convenience. This is the simpler of the two documented options and matches the DB Design sheet's note that the `sessions` collection is _"not created at all if JWT is chosen."_ No `sessions` collection exists in this database. If the team prefers `express-session` + `connect-mongo` instead, `authController.js`/`requireAuth.js` are the only two files that would need to change — the route surface (`POST /register`, `POST /login`, `GET /me`) would stay identical.
 
 ### Design decision: bcryptjs, not bcrypt
 
@@ -30,13 +30,13 @@ The Guide's Development Notes say "hashed with bcrypt." This implementation uses
 
 ## Acceptance criteria verification
 
-| # | Criterion |
-|---|---|
-| AC-1 | `POST /register` creates a user with a hashed password and default `role=user` |
-| AC-2 | A duplicate registration attempt (same email) is rejected with a clear error |
-| AC-3 | `POST /login` validates credentials and issues a session/JWT on success |
+| #    | Criterion                                                                                                                            |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| AC-1 | `POST /register` creates a user with a hashed password and default `role=user`                                                       |
+| AC-2 | A duplicate registration attempt (same email) is rejected with a clear error                                                         |
+| AC-3 | `POST /login` validates credentials and issues a session/JWT on success                                                              |
 | AC-4 | A banned account (`isBanned: true`) is blocked at login with an explicit "account banned" message, even when the password is correct |
-| AC-5 | `middleware/requireAuth.js` protects any route that needs a logged-in user and is reusable by Epic B |
+| AC-5 | `middleware/requireAuth.js` protects any route that needs a logged-in user and is reusable by Epic B                                 |
 
 ### Step 1 — Start the server
 
@@ -83,8 +83,11 @@ There is no ban/unban route yet (that's Epic B, Issue #5) — so this step flips
    ```
    Then inside the `mongosh` prompt:
    ```js
-   db.users.updateOne({ email: "postman-test@example.com" }, { $set: { isBanned: true } })
-   exit
+   db.users.updateOne(
+     { email: 'postman-test@example.com' },
+     { $set: { isBanned: true } }
+   );
+   exit;
    ```
 3. Back in Postman, re-run just the **"5. POST /login (correct creds, AC-3)"** request (same correct password as before).
 4. **Pass:** the response is now `403` with body:
@@ -101,12 +104,14 @@ There is no ban/unban route yet (that's Epic B, Issue #5) — so this step flips
 ### Step 4 — Clean up the test account (optional)
 
 Once you're satisfied all checks pass, you can remove the Postman test user so re-running the collection from a clean slate doesn't hit the duplicate-email check on request 2:
+
 ```powershell
 mongosh "mongodb://127.0.0.1:27017/golden_fur_mongo"
 ```
+
 ```js
-db.users.deleteOne({ email: "postman-test@example.com" })
-exit
+db.users.deleteOne({ email: 'postman-test@example.com' });
+exit;
 ```
 
 ---

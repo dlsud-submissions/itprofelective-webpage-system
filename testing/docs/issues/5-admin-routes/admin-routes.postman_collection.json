@@ -168,7 +168,9 @@
       ],
       "request": {
         "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+        ],
         "url": "{{baseUrl}}/admin/users"
       }
     },

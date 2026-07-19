@@ -5,22 +5,22 @@
 
 ## What was built
 
-| File | Purpose |
-|---|---|
-| `server/middleware/requireAdmin.js` | Rejects authenticated users unless their current MongoDB role is `admin`. |
-| `server/controllers/adminController.js` | Lists users, updates `isBanned`, updates `role`, validates ids/roles, and blocks admin self-ban. |
-| `server/routes/adminRoutes.js` | Adds `GET /admin/users`, `PATCH /admin/users/:id/ban`, and `PATCH /admin/users/:id/role` behind `requireAuth` and `requireAdmin`. |
-| `server/server.js` | Mounts existing auth routes and the new admin routes into the Express server. |
+| File                                    | Purpose                                                                                                                           |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `server/middleware/requireAdmin.js`     | Rejects authenticated users unless their current MongoDB role is `admin`.                                                         |
+| `server/controllers/adminController.js` | Lists users, updates `isBanned`, updates `role`, validates ids/roles, and blocks admin self-ban.                                  |
+| `server/routes/adminRoutes.js`          | Adds `GET /admin/users`, `PATCH /admin/users/:id/ban`, and `PATCH /admin/users/:id/role` behind `requireAuth` and `requireAdmin`. |
+| `server/server.js`                      | Mounts existing auth routes and the new admin routes into the Express server.                                                     |
 
 ## Acceptance criteria
 
-| # | Criterion |
-|---|---|
+| #    | Criterion                                                                                       |
+| ---- | ----------------------------------------------------------------------------------------------- |
 | AC-1 | `GET /admin/users` returns all users with `name`, `email`, `role`, `isBanned`, and `createdAt`. |
-| AC-2 | `PATCH /admin/users/:id/ban` can ban/unban a target user. |
-| AC-3 | `PATCH /admin/users/:id/role` sets `role` to `user`, `staff`, or `admin`. |
-| AC-4 | Non-admin requests to `/admin/*` are rejected before any user data is returned. |
-| AC-5 | An admin cannot ban their own account. |
+| AC-2 | `PATCH /admin/users/:id/ban` can ban/unban a target user.                                       |
+| AC-3 | `PATCH /admin/users/:id/role` sets `role` to `user`, `staff`, or `admin`.                       |
+| AC-4 | Non-admin requests to `/admin/*` are rejected before any user data is returned.                 |
+| AC-5 | An admin cannot ban their own account.                                                          |
 
 ## Verification steps
 
@@ -77,17 +77,19 @@
    mongosh "mongodb://127.0.0.1:27017/golden_fur_mongo"
    ```
 3. Inside the `mongosh` prompt, run:
+
    ```js
    db.users.updateOne(
-     { email: "admin-routes-admin@example.com" },
-     { $set: { role: "admin", isBanned: false } }
-   )
+     { email: 'admin-routes-admin@example.com' },
+     { $set: { role: 'admin', isBanned: false } }
+   );
 
    db.users.updateOne(
-     { email: "admin-routes-user@example.com" },
-     { $set: { role: "user", isBanned: false } }
-   )
+     { email: 'admin-routes-user@example.com' },
+     { $set: { role: 'user', isBanned: false } }
+   );
    ```
+
 4. Pass:
    - both commands show `acknowledged: true`.
    - the admin update shows `matchedCount: 1`.
@@ -118,9 +120,16 @@
 3. Inside the `mongosh` prompt, run:
    ```js
    db.users.find(
-     { email: { $in: ["admin-routes-admin@example.com", "admin-routes-user@example.com"] } },
+     {
+       email: {
+         $in: [
+           'admin-routes-admin@example.com',
+           'admin-routes-user@example.com',
+         ],
+       },
+     },
      { name: 1, email: 1, role: 1, isBanned: 1, createdAt: 1 }
-   )
+   );
    ```
 4. Pass:
    - `admin-routes-admin@example.com` has `role: "admin"`.

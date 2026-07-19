@@ -7,9 +7,9 @@
 
 ## What was built
 
-| File | Purpose |
-|---|---|
-| [`server/database/db.js`](../../../../server/database/db.js) | Connects to MongoDB via Mongoose on server start. Logs a clear error and calls `process.exit(1)` if `MONGODB_URI` is missing or the connection fails, so the server never runs "half-alive". |
+| File                                                         | Purpose                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`server/database/db.js`](../../../../server/database/db.js) | Connects to MongoDB via Mongoose on server start. Logs a clear error and calls `process.exit(1)` if `MONGODB_URI` is missing or the connection fails, so the server never runs "half-alive".                                                                                    |
 | [`server/models/User.js`](../../../../server/models/User.js) | The `users` collection schema: `name`, `email` (required, unique), `passwordHash` (required, `select: false` so it is never returned by a plain query), `role` (enum `user`/`staff`/`admin`, default `'user'`), `isBanned` (default `false`), `createdAt` (default `Date.now`). |
 
 This is the single source of truth for the schema. Epic B (M02 Staff Admin Panel) will import this model rather than redefining fields.
@@ -24,10 +24,10 @@ mongodb://127.0.0.1:27017/golden_fur_mongo
 
 That connection string means:
 
-| Part | Meaning |
-|---|---|
-| `127.0.0.1` | Your own computer. |
-| `27017` | MongoDB's default local port. |
+| Part               | Meaning                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `127.0.0.1`        | Your own computer.                                                                    |
+| `27017`            | MongoDB's default local port.                                                         |
 | `golden_fur_mongo` | The database name this app uses. MongoDB creates it when the first document is saved. |
 
 ### Install MongoDB
@@ -85,22 +85,22 @@ That connection string means:
 
 What those commands mean:
 
-| Command | What it does |
-|---|---|
-| `db` | Shows the database you are currently using. |
-| `show dbs` | Lists databases MongoDB knows about. `golden_fur_mongo` may not appear until a user is registered. |
-| `show collections` | Lists collection names inside the current database. Collections are similar to tables. |
-| `db.users.find()` | Shows documents in the `users` collection. |
-| `db.users.find().pretty()` | Shows users in a more readable layout. |
-| `exit` | Leaves the MongoDB shell. |
+| Command                    | What it does                                                                                       |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| `db`                       | Shows the database you are currently using.                                                        |
+| `show dbs`                 | Lists databases MongoDB knows about. `golden_fur_mongo` may not appear until a user is registered. |
+| `show collections`         | Lists collection names inside the current database. Collections are similar to tables.             |
+| `db.users.find()`          | Shows documents in the `users` collection.                                                         |
+| `db.users.find().pretty()` | Shows users in a more readable layout.                                                             |
+| `exit`                     | Leaves the MongoDB shell.                                                                          |
 
 ## Acceptance criteria verification
 
-| # | Criterion | How to verify |
-|---|---|---|
-| AC-1 | `server/database/db.js` connects to MongoDB on server start | Step 1 below |
-| AC-2 | `server/models/User.js` defines `name`/`email`/`passwordHash`/`role`/`isBanned`/`createdAt` with the constraints/defaults in the DB Design sheet | Step 2 below |
-| AC-3 | Connection errors are logged clearly, not silently swallowed | Step 3 below |
+| #    | Criterion                                                                                                                                        | How to verify |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| AC-1 | `server/database/db.js` connects to MongoDB on server start                                                                                      | Step 1 below  |
+| AC-2 | `server/models/User.js` defines `name`/`email`/`passwordHash`/`role`/`isBanned`/`createdAt` with the constraints/defaults in the DB Design sheet | Step 2 below  |
+| AC-3 | Connection errors are logged clearly, not silently swallowed                                                                                     | Step 3 below  |
 
 ### Step 1 - Confirm the server connects to MongoDB on startup
 
@@ -131,7 +131,7 @@ This is easiest to observe after registering a user, because registration create
    ```
 3. Inspect a user document:
    ```js
-   db.users.findOne({ email: "your-test-email@example.com" })
+   db.users.findOne({ email: 'your-test-email@example.com' });
    ```
 4. **Pass:** the returned document has `_id`, `name`, `email`, `passwordHash`, `role`, `isBanned`, `createdAt`, and `__v`.
 5. **Pass:** `passwordHash` starts with `$2a$` or `$2b$`. It should never be the plaintext password you typed.
@@ -139,12 +139,12 @@ This is easiest to observe after registering a user, because registration create
 7. **Pass:** `isBanned` is `false` unless you intentionally changed it.
 8. Check that no user has an invalid role:
    ```js
-   db.users.find({ role: { $nin: ["user", "staff", "admin"] } }).count()
+   db.users.find({ role: { $nin: ['user', 'staff', 'admin'] } }).count();
    ```
 9. **Pass:** this returns `0`.
 10. Leave `mongosh`:
     ```js
-    exit
+    exit;
     ```
 
 ### Step 3 - Confirm connection errors are logged clearly, not swallowed
