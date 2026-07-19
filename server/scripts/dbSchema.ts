@@ -1,17 +1,33 @@
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
-const mongoose = require('mongoose');
+import path from 'node:path';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
-// Mirrors server/models/User.js, Service.js, and Product.js. Update here
+dotenv.config({ path: path.join(import.meta.dirname, '..', '.env') });
+
+interface CollectionSpec {
+  name: string;
+  validator: Record<string, unknown>;
+  indexes: [Record<string, 1 | -1>, Record<string, unknown>][];
+}
+
+// Mirrors server/src/shared/models/user.model.ts and
+// server/src/features/{products,services}/*.model.ts. Update here
 // whenever one of those Mongoose schemas changes -- this is the DB-level
 // enforcement layer (via $jsonSchema validators), Mongoose is the app-level one.
-const COLLECTIONS = [
+const COLLECTIONS: CollectionSpec[] = [
   {
     name: 'users',
     validator: {
       $jsonSchema: {
         bsonType: 'object',
-        required: ['name', 'email', 'passwordHash', 'role', 'isBanned', 'createdAt'],
+        required: [
+          'name',
+          'email',
+          'passwordHash',
+          'role',
+          'isBanned',
+          'createdAt',
+        ],
         properties: {
           name: { bsonType: 'string' },
           email: { bsonType: 'string' },
@@ -66,22 +82,39 @@ async function applySchema() {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    console.error('[db:schema] MONGODB_URI is not set. Copy server/.env.example to server/.env and configure it.');
+    console.error(
+      '[db:schema] MONGODB_URI is not set. Copy server/.env.example to server/.env and configure it.'
+    );
     process.exit(1);
   }
 
   await mongoose.connect(uri);
   const db = mongoose.connection.db;
+  if (!db) {
+    console.error('[db:schema] No active MongoDB connection.');
+    process.exit(1);
+  }
   console.log(`[db:schema] Connected to MongoDB (${mongoose.connection.name})`);
 
-  const existingNames = (await db.listCollections().toArray()).map((c) => c.name);
+  const existingNames = (await db.listCollections().toArray()).map(
+    (c) => c.name
+  );
 
   for (const { name, validator, indexes } of COLLECTIONS) {
     if (existingNames.includes(name)) {
-      await db.command({ collMod: name, validator, validationLevel: 'moderate' });
-      console.log(`[db:schema] Updated validator on existing collection: ${name}`);
+      await db.command({
+        collMod: name,
+        validator,
+        validationLevel: 'moderate',
+      });
+      console.log(
+        `[db:schema] Updated validator on existing collection: ${name}`
+      );
     } else {
-      await db.createCollection(name, { validator, validationLevel: 'moderate' });
+      await db.createCollection(name, {
+        validator,
+        validationLevel: 'moderate',
+      });
       console.log(`[db:schema] Created collection with validator: ${name}`);
     }
 

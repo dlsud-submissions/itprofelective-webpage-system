@@ -1,6 +1,8 @@
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
-const mongoose = require('mongoose');
+import path from 'node:path';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+
+dotenv.config({ path: path.join(import.meta.dirname, '..', '.env') });
 
 const COLLECTIONS_TO_RESET = ['users', 'services', 'products'];
 
@@ -8,7 +10,9 @@ async function resetDb() {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    console.error('[db:reset] MONGODB_URI is not set. Copy server/.env.example to server/.env and configure it.');
+    console.error(
+      '[db:reset] MONGODB_URI is not set. Copy server/.env.example to server/.env and configure it.'
+    );
     process.exit(1);
   }
 
@@ -17,7 +21,9 @@ async function resetDb() {
 
   for (const name of COLLECTIONS_TO_RESET) {
     const result = await mongoose.connection.collection(name).deleteMany({});
-    console.log(`[db:reset] Cleared ${name}: ${result.deletedCount} document(s) removed`);
+    console.log(
+      `[db:reset] Cleared ${name}: ${result.deletedCount} document(s) removed`
+    );
   }
 
   await mongoose.disconnect();

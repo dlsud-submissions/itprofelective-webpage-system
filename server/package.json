@@ -3,10 +3,16 @@
   "private": true,
   "version": "1.0.0",
   "description": "Golden Fur MIS - MongoDB finals variant (M01 User Registration & Authentication, M02 Staff Admin Panel)",
-  "main": "server.js",
+  "type": "module",
+  "main": "src/server.ts",
   "scripts": {
-    "_dev": "node --watch server.js",
-    "_start": "node server.js"
+    "_dev": "tsx watch src/server.ts",
+    "_start": "tsx src/server.ts",
+    "_typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -16,5 +22,18 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/express": "^4.17.23",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.10.1",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "tsx": "^4.22.4",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.64.0",
+    "vitest": "^4.1.10"
+  }
 }
