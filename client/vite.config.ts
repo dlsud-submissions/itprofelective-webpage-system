@@ -6,7 +6,7 @@ declare const process: {
 };
 
 // Dev server proxies the auth API to the golden-fur-mongo Express backend
-// (see ../server.js) so the browser sees everything as same-origin --
+// (see ../server/src/server.ts) so the browser sees everything as same-origin --
 // this is what lets the httpOnly session cookie set by POST /login be
 // readable on subsequent requests without any CORS configuration.
 export default defineConfig(({ mode }) => {

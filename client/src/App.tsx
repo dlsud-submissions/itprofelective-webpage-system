@@ -1,14 +1,14 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
-import { AuthProvider } from './shared/auth/AuthProvider';
-import { RequireRole } from './shared/auth/RequireRole';
-import { LandingPage } from './pages/LandingPage/LandingPage';
-import { LoginPage } from './pages/LoginPage/LoginPage';
-import { SignupPage } from './pages/SignupPage/SignupPage';
-import { ServicesPage } from './pages/ServicesPage/ServicesPage';
-import { ProductsPage } from './pages/ProductsPage/ProductsPage';
-import { CustomerDashboardPage } from './pages/CustomerDashboardPage/CustomerDashboardPage';
-import { StaffDashboardPage } from './pages/StaffDashboardPage/StaffDashboardPage';
-import { AdminDashboardPage } from './pages/AdminDashboardPage/AdminDashboardPage';
+import { AuthProvider } from './features/auth/AuthProvider';
+import { RequireRole } from './features/auth/RequireRole';
+import { LandingPage } from './features/landing/pages/LandingPage/LandingPage';
+import { LoginPage } from './features/auth/pages/LoginPage/LoginPage';
+import { SignupPage } from './features/auth/pages/SignupPage/SignupPage';
+import { ServicesPage } from './features/catalog/pages/ServicesPage/ServicesPage';
+import { ProductsPage } from './features/catalog/pages/ProductsPage/ProductsPage';
+import { CustomerDashboardPage } from './features/dashboard/pages/CustomerDashboardPage/CustomerDashboardPage';
+import { StaffDashboardPage } from './features/dashboard/pages/StaffDashboardPage/StaffDashboardPage';
+import { AdminDashboardPage } from './features/dashboard/pages/AdminDashboardPage/AdminDashboardPage';
 
 export default function App() {
   return (
@@ -25,7 +25,7 @@ export default function App() {
           <Route path="/catalog/services" element={<ServicesPage />} />
           <Route path="/catalog/products" element={<ProductsPage />} />
           {/* Nested under /dashboard so a future /admin API proxy entry
-              (see server/routes/adminRoutes.js) can never collide with the
+              (see server/src/features/admin/admin.routes.ts) can never collide with the
               admin dashboard page the way /services once did with the
               catalog pages. */}
           <Route
