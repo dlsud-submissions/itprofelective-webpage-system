@@ -1,10 +1,12 @@
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const User = require('../models/User');
-const Service = require('../models/Service');
-const Product = require('../models/Product');
+import path from 'node:path';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import { User, type UserRole } from '../src/shared/models/user.model.js';
+import { Service } from '../src/features/services/service.model.js';
+import { Product } from '../src/features/products/product.model.js';
+
+dotenv.config({ path: path.join(import.meta.dirname, '..', '.env') });
 
 const SALT_ROUNDS = 10;
 
@@ -50,7 +52,14 @@ const SAMPLE_PRODUCTS = [
   },
 ];
 
-async function seedUser({ name, email, password, role }) {
+interface SeedUserInput {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+async function seedUser({ name, email, password, role }: SeedUserInput) {
   const normalizedEmail = email.trim().toLowerCase();
   const existing = await User.findOne({ email: normalizedEmail });
 

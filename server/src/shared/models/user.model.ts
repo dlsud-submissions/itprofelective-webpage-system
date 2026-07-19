@@ -1,6 +1,20 @@
-const mongoose = require('mongoose');
+import { Schema, model, type HydratedDocument } from 'mongoose';
 
-const userSchema = new mongoose.Schema({
+export const USER_ROLES = ['user', 'staff', 'admin'] as const;
+export type UserRole = (typeof USER_ROLES)[number];
+
+export interface IUser {
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: UserRole;
+  isBanned: boolean;
+  createdAt: Date;
+}
+
+export type UserDocument = HydratedDocument<IUser>;
+
+const userSchema = new Schema<IUser>({
   name: {
     type: String,
     required: true,
@@ -20,7 +34,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'staff', 'admin'],
+    enum: USER_ROLES,
     required: true,
     default: 'user',
   },
@@ -36,4 +50,4 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('User', userSchema);
+export const User = model<IUser>('User', userSchema);

@@ -1,16 +1,21 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import type { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { User, type UserDocument } from '../../shared/models/user.model.js';
 
 const SALT_ROUNDS = 10;
 
-function issueToken(user) {
-  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '1d',
-  });
+function issueToken(user: UserDocument): string {
+  return jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET as string,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN || '1d',
+    } as jwt.SignOptions
+  );
 }
 
-function setAuthCookie(res, token) {
+function setAuthCookie(res: Response, token: string) {
   res.cookie('token', token, {
     httpOnly: true,
     sameSite: 'lax',
@@ -18,7 +23,7 @@ function setAuthCookie(res, token) {
   });
 }
 
-function toPublicUser(user) {
+function toPublicUser(user: UserDocument) {
   return {
     id: user._id,
     name: user.name,
@@ -28,16 +33,20 @@ function toPublicUser(user) {
   };
 }
 
-exports.register = async (req, res) => {
+export async function register(req: Request, res: Response) {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
-    return res.status(400).json({ error: 'Name, email, and password are required.' });
+    return res
+      .status(400)
+      .json({ error: 'Name, email, and password are required.' });
   }
 
   const existing = await User.findOne({ email: email.trim().toLowerCase() });
   if (existing) {
-    return res.status(409).json({ error: 'An account with this email already exists.' });
+    return res
+      .status(409)
+      .json({ error: 'An account with this email already exists.' });
   }
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
@@ -49,16 +58,18 @@ exports.register = async (req, res) => {
   });
 
   return res.status(201).json({ user: toPublicUser(user) });
-};
+}
 
-exports.login = async (req, res) => {
+export async function login(req: Request, res: Response) {
   const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required.' });
   }
 
-  const user = await User.findOne({ email: email.trim().toLowerCase() }).select('+passwordHash');
+  const user = await User.findOne({ email: email.trim().toLowerCase() }).select(
+    '+passwordHash'
+  );
   if (!user) {
     return res.status(401).json({ error: 'Invalid email or password.' });
   }
@@ -76,9 +87,9 @@ exports.login = async (req, res) => {
   setAuthCookie(res, token);
 
   return res.status(200).json({ user: toPublicUser(user), token });
-};
+}
 
-exports.logout = (req, res) => {
+export function logout(_req: Request, res: Response) {
   res.clearCookie('token');
   return res.status(200).json({ message: 'Logged out.' });
-};
+}

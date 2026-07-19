@@ -1,6 +1,15 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const serviceSchema = new mongoose.Schema({
+export interface IService {
+  name: string;
+  description?: string;
+  price: number;
+  category?: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+const serviceSchema = new Schema<IService>({
   name: {
     type: String,
     required: true,
@@ -31,4 +40,4 @@ const serviceSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('Service', serviceSchema);
+export const Service = model<IService>('Service', serviceSchema);
