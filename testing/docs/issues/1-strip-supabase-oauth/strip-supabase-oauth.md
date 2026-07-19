@@ -23,11 +23,11 @@ golden-fur-mongo/
 
 ## Acceptance criteria verification
 
-| # | Criterion | How to verify |
-|---|---|---|
-| AC-1 | No Supabase client import or `.env` key remains anywhere in the codebase | Step 1 below |
-| AC-2 | `GoogleOAuthButton`, `FacebookOAuthButton`, `SocialAuthButtons`, `OAuthCallbackPage` (or equivalents) are removed | Step 2 below |
-| AC-3 | The repo still starts without errors after removal | Step 3 below (covered fully by Issue #4's doc, since `golden-fur-mongo/` only becomes runnable once Issue #3/#4's files exist) |
+| #    | Criterion                                                                                                         | How to verify                                                                                                                  |
+| ---- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| AC-1 | No Supabase client import or `.env` key remains anywhere in the codebase                                          | Step 1 below                                                                                                                   |
+| AC-2 | `GoogleOAuthButton`, `FacebookOAuthButton`, `SocialAuthButtons`, `OAuthCallbackPage` (or equivalents) are removed | Step 2 below                                                                                                                   |
+| AC-3 | The repo still starts without errors after removal                                                                | Step 3 below (covered fully by Issue #4's doc, since `golden-fur-mongo/` only becomes runnable once Issue #3/#4's files exist) |
 
 ### Step 1 — Confirm no Supabase references in `golden-fur-mongo/`
 

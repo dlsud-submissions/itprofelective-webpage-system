@@ -15,10 +15,10 @@ Same as [Issue #1](../1-strip-supabase-oauth/strip-supabase-oauth.md): this epic
 
 ## Acceptance criteria verification
 
-| # | Criterion | How to verify |
-|---|---|---|
-| AC-1 | Only routes/views/models needed for M01 and M02 remain wired into `server.js` | Step 1 below |
-| AC-2 | Removed folders do not break the app on startup | Step 2 below |
+| #    | Criterion                                                                     | How to verify |
+| ---- | ----------------------------------------------------------------------------- | ------------- |
+| AC-1 | Only routes/views/models needed for M01 and M02 remain wired into `server.js` | Step 1 below  |
+| AC-2 | Removed folders do not break the app on startup                               | Step 2 below  |
 
 ### Step 1 — Confirm only M01 is wired into `server.js`
 
@@ -33,6 +33,7 @@ Same as [Issue #1](../1-strip-supabase-oauth/strip-supabase-oauth.md): this epic
 ### Step 2 — Confirm the app starts cleanly with only M01 present
 
 See [`testing/docs/issues/4-register-login-routes/register-login-routes.md`](../4-register-login-routes/register-login-routes.md), Step 1 — the same live boot check documents this. It was run during development on 2026-07-15 and the server started with no errors:
+
 ```
 [db] Connected to MongoDB (golden_fur_mongo)
 [server] Golden Fur MIS (Mongo finals variant) listening on port 4321

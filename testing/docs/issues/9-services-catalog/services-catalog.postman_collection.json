@@ -348,7 +348,9 @@
       ],
       "request": {
         "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{staffToken}}" }],
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{staffToken}}" }
+        ],
         "url": "{{baseUrl}}/services",
         "description": "Uses attachUserIfPresent (optional auth) on GET /services -- an authenticated staff/admin caller gets every document, not just isActive:true, so they have a way to find and reactivate what they deactivated."
       }

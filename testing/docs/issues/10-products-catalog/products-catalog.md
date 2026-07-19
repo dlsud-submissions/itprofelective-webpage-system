@@ -7,12 +7,12 @@
 
 ## What was built
 
-| File | Purpose |
-|---|---|
-| `server/models/Product.js` | Mongoose schema: `name` (required), `description`, `price` (required, min 0), `stock` (required, min 0, default `0`), `isActive` (default `true`), `createdAt` (default `Date.now()`). |
+| File                                      | Purpose                                                                                                                                                                                                                                   |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server/models/Product.js`                | Mongoose schema: `name` (required), `description`, `price` (required, min 0), `stock` (required, min 0, default `0`), `isActive` (default `true`), `createdAt` (default `Date.now()`).                                                    |
 | `server/controllers/productController.js` | `listProducts` (filters `isActive: true` for anonymous/`user`-role callers; returns everything, including inactive, for `staff`/`admin`), `createProduct`, `updateProduct` (edits + the `isActive` toggle used to deactivate/reactivate). |
-| `server/routes/productRoutes.js` | `GET /products` (public, with optional auth), `POST /products` and `PATCH /products/:id` (both behind `requireAuth` → `requireStaffOrAdmin`). |
-| `server/server.js` | Mounts `productRoutes` alongside the existing auth/admin/service routes. |
+| `server/routes/productRoutes.js`          | `GET /products` (public, with optional auth), `POST /products` and `PATCH /products/:id` (both behind `requireAuth` → `requireStaffOrAdmin`).                                                                                             |
+| `server/server.js`                        | Mounts `productRoutes` alongside the existing auth/admin/service routes.                                                                                                                                                                  |
 
 `middleware/requireStaffOrAdmin.js` and `middleware/attachUserIfPresent.js` already exist from Issue #9 (services) and are reused here rather than duplicated — see [Issue #9's doc](../9-services-catalog/services-catalog.md).
 
@@ -26,13 +26,13 @@ Same resolved behavior as Issue #9's services (see [its doc](../9-services-catal
 
 ## Acceptance criteria
 
-| # | Criterion |
-|---|---|
-| AC-1 | `models/Product.js` defines `name`/`description`/`price`/`stock`/`isActive`/`createdAt`. |
-| AC-2 | `GET /products` returns only documents where `isActive: true` for anonymous callers and logged-in `user`-role callers. |
-| AC-3 | `POST /products` and `PATCH /products/:id` require `role: "staff"` or `role: "admin"`. |
+| #    | Criterion                                                                                                                                                                                |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC-1 | `models/Product.js` defines `name`/`description`/`price`/`stock`/`isActive`/`createdAt`.                                                                                                 |
+| AC-2 | `GET /products` returns only documents where `isActive: true` for anonymous callers and logged-in `user`-role callers.                                                                   |
+| AC-3 | `POST /products` and `PATCH /products/:id` require `role: "staff"` or `role: "admin"`.                                                                                                   |
 | AC-4 | No hard-delete route exists on this collection — deactivation happens via `isActive: false` on the same `PATCH` route used for edits, and the same route reverses it (`isActive: true`). |
-| AC-5 | An authenticated `staff`/`admin` caller's `GET /products` includes `isActive: false` documents too, so they have a way to find and reactivate what they deactivated. |
+| AC-5 | An authenticated `staff`/`admin` caller's `GET /products` includes `isActive: false` documents too, so they have a way to find and reactivate what they deactivated.                     |
 
 ## Verification steps
 
@@ -91,9 +91,9 @@ Same resolved behavior as Issue #9's services (see [its doc](../9-services-catal
 3. Inside the `mongosh` prompt, run:
    ```js
    db.users.updateOne(
-     { email: "products-catalog-staff@example.com" },
-     { $set: { role: "staff", isBanned: false } }
-   )
+     { email: 'products-catalog-staff@example.com' },
+     { $set: { role: 'staff', isBanned: false } }
+   );
    ```
 4. Pass: `acknowledged: true` and `matchedCount: 1`.
 5. Type `exit` and press Enter.
@@ -127,7 +127,10 @@ Same resolved behavior as Issue #9's services (see [its doc](../9-services-catal
    ```
 3. Inside the `mongosh` prompt, run:
    ```js
-   db.products.find({ name: "Postman Test Dog Food" }, { name: 1, price: 1, stock: 1, isActive: 1 })
+   db.products.find(
+     { name: 'Postman Test Dog Food' },
+     { name: 1, price: 1, stock: 1, isActive: 1 }
+   );
    ```
 4. Pass: one document, `stock: 12`, `isActive: true` (the collection run deactivates it and then reactivates it again as its last step, so the end state is active).
 5. Type `exit` and press Enter.

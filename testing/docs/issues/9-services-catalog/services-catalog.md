@@ -7,14 +7,14 @@
 
 ## What was built
 
-| File | Purpose |
-|---|---|
-| `server/models/Service.js` | Mongoose schema: `name` (required), `description`, `price` (required, min 0), `category`, `isActive` (default `true`), `createdAt` (default `Date.now()`). |
-| `server/middleware/requireStaffOrAdmin.js` | Runs after `requireAuth`; rejects with `403` unless `req.user.role` is `staff` or `admin`. Shared with Issue #10's product routes — not duplicated. |
-| `server/middleware/attachUserIfPresent.js` | Optional-auth middleware for `GET /services`: attaches `req.user` when a valid session is present, but never rejects an anonymous request. Also shared with Issue #10. |
-| `server/controllers/serviceController.js` | `listServices` (filters `isActive: true` for anonymous/`user`-role callers; returns everything, including inactive, for `staff`/`admin`), `createService`, `updateService` (edits + the `isActive` toggle used to deactivate/reactivate). |
-| `server/routes/serviceRoutes.js` | `GET /services` (public, with optional auth), `POST /services` and `PATCH /services/:id` (both behind `requireAuth` → `requireStaffOrAdmin`). |
-| `server/server.js` | Mounts `serviceRoutes` alongside the existing auth/admin routes. |
+| File                                       | Purpose                                                                                                                                                                                                                                   |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server/models/Service.js`                 | Mongoose schema: `name` (required), `description`, `price` (required, min 0), `category`, `isActive` (default `true`), `createdAt` (default `Date.now()`).                                                                                |
+| `server/middleware/requireStaffOrAdmin.js` | Runs after `requireAuth`; rejects with `403` unless `req.user.role` is `staff` or `admin`. Shared with Issue #10's product routes — not duplicated.                                                                                       |
+| `server/middleware/attachUserIfPresent.js` | Optional-auth middleware for `GET /services`: attaches `req.user` when a valid session is present, but never rejects an anonymous request. Also shared with Issue #10.                                                                    |
+| `server/controllers/serviceController.js`  | `listServices` (filters `isActive: true` for anonymous/`user`-role callers; returns everything, including inactive, for `staff`/`admin`), `createService`, `updateService` (edits + the `isActive` toggle used to deactivate/reactivate). |
+| `server/routes/serviceRoutes.js`           | `GET /services` (public, with optional auth), `POST /services` and `PATCH /services/:id` (both behind `requireAuth` → `requireStaffOrAdmin`).                                                                                             |
+| `server/server.js`                         | Mounts `serviceRoutes` alongside the existing auth/admin routes.                                                                                                                                                                          |
 
 ### Design note: staff/admin see inactive items too (resolved open item)
 
@@ -22,13 +22,13 @@ The Guide originally flagged this as an **open item for adviser confirmation**: 
 
 ## Acceptance criteria
 
-| # | Criterion |
-|---|---|
-| AC-1 | `models/Service.js` defines `name`/`description`/`price`/`category`/`isActive`/`createdAt`. |
-| AC-2 | `GET /services` returns only documents where `isActive: true` for anonymous callers and logged-in `user`-role callers. |
-| AC-3 | `POST /services` and `PATCH /services/:id` require `role: "staff"` or `role: "admin"`. |
+| #    | Criterion                                                                                                                                                                                |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC-1 | `models/Service.js` defines `name`/`description`/`price`/`category`/`isActive`/`createdAt`.                                                                                              |
+| AC-2 | `GET /services` returns only documents where `isActive: true` for anonymous callers and logged-in `user`-role callers.                                                                   |
+| AC-3 | `POST /services` and `PATCH /services/:id` require `role: "staff"` or `role: "admin"`.                                                                                                   |
 | AC-4 | No hard-delete route exists on this collection — deactivation happens via `isActive: false` on the same `PATCH` route used for edits, and the same route reverses it (`isActive: true`). |
-| AC-5 | An authenticated `staff`/`admin` caller's `GET /services` includes `isActive: false` documents too, so they have a way to find and reactivate what they deactivated. |
+| AC-5 | An authenticated `staff`/`admin` caller's `GET /services` includes `isActive: false` documents too, so they have a way to find and reactivate what they deactivated.                     |
 
 ## Verification steps
 
@@ -89,9 +89,9 @@ There is no in-app way to become staff yet (that's Epic B's admin panel, and its
 3. Inside the `mongosh` prompt, run:
    ```js
    db.users.updateOne(
-     { email: "services-catalog-staff@example.com" },
-     { $set: { role: "staff", isBanned: false } }
-   )
+     { email: 'services-catalog-staff@example.com' },
+     { $set: { role: 'staff', isBanned: false } }
+   );
    ```
 4. Pass: `acknowledged: true` and `matchedCount: 1`.
 5. Type `exit` and press Enter.
@@ -125,7 +125,10 @@ There is no in-app way to become staff yet (that's Epic B's admin panel, and its
    ```
 3. Inside the `mongosh` prompt, run:
    ```js
-   db.services.find({ name: "Postman Test Grooming Package" }, { name: 1, price: 1, category: 1, isActive: 1 })
+   db.services.find(
+     { name: 'Postman Test Grooming Package' },
+     { name: 1, price: 1, category: 1, isActive: 1 }
+   );
    ```
 4. Pass: one document, `price: 50`, `category: "Grooming"`, `isActive: true` (the collection run deactivates it and then reactivates it again as its last step, so the end state is active).
 5. Type `exit` and press Enter.
