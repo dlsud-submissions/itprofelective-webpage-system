@@ -23,16 +23,18 @@
     "mongo:server": "npm run dev:server",
     "mongo:start": "npm run start",
     "mongo:install": "npm run install:all",
-    "db:reset": "node server/scripts/dbReset.js",
-    "db:schema": "node server/scripts/dbSchema.js",
-    "db:seed": "node server/scripts/dbSeed.js",
+    "db:reset": "tsx server/scripts/dbReset.ts",
+    "db:schema": "tsx server/scripts/dbSchema.ts",
+    "db:seed": "tsx server/scripts/dbSeed.ts",
     "=== CODE QUALITY ===": "",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,css,scss,less,html,json,md,mdx,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,css,scss,less,html,json,md,mdx,yaml,yml}\"",
     "=== BUILD ===": "",
     "build": "npm --prefix client run _build",
     "preview": "npm --prefix client run _preview",
-    "typecheck": "npm --prefix client run _typecheck"
+    "typecheck": "npm run typecheck:client && npm run typecheck:server",
+    "typecheck:client": "npm --prefix client run _typecheck",
+    "typecheck:server": "npm --prefix server run _typecheck"
   },
   "devDependencies": {
     "@supabase/supabase-js": "^2.49.8",
