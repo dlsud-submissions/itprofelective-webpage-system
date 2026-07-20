@@ -11,7 +11,7 @@ interface CollectionSpec {
 }
 
 // Mirrors server/src/shared/models/user.model.ts and
-// server/src/features/{products,services}/*.model.ts. Update here
+// server/src/features/{products,services,purchases}/*.model.ts. Update here
 // whenever one of those Mongoose schemas changes -- this is the DB-level
 // enforcement layer (via $jsonSchema validators), Mongoose is the app-level one.
 const COLLECTIONS: CollectionSpec[] = [
@@ -75,6 +75,35 @@ const COLLECTIONS: CollectionSpec[] = [
       },
     },
     indexes: [[{ isActive: 1 }, {}]],
+  },
+  {
+    name: 'purchases',
+    validator: {
+      $jsonSchema: {
+        bsonType: 'object',
+        required: [
+          'userId',
+          'itemType',
+          'itemId',
+          'itemName',
+          'unitPrice',
+          'quantity',
+          'totalPrice',
+          'createdAt',
+        ],
+        properties: {
+          userId: { bsonType: 'objectId' },
+          itemType: { enum: ['product', 'service'] },
+          itemId: { bsonType: 'objectId' },
+          itemName: { bsonType: 'string' },
+          unitPrice: { bsonType: 'number', minimum: 0 },
+          quantity: { bsonType: 'number', minimum: 1 },
+          totalPrice: { bsonType: 'number', minimum: 0 },
+          createdAt: { bsonType: 'date' },
+        },
+      },
+    },
+    indexes: [[{ userId: 1, createdAt: -1 }, {}]],
   },
 ];
 

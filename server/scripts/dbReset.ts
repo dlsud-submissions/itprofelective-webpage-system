@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 dotenv.config({ path: path.join(import.meta.dirname, '..', '.env') });
 
-const COLLECTIONS_TO_RESET = ['users', 'services', 'products'];
+const COLLECTIONS_TO_RESET = ['users', 'services', 'products', 'purchases'];
 
 async function resetDb() {
   const uri = process.env.MONGODB_URI;

@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { User, type UserRole } from '../src/shared/models/user.model.js';
 import { Service } from '../src/features/services/service.model.js';
 import { Product } from '../src/features/products/product.model.js';
+import { Purchase } from '../src/features/purchases/purchase.model.js';
 
 dotenv.config({ path: path.join(import.meta.dirname, '..', '.env') });
 
@@ -76,12 +77,12 @@ async function seedUser({ name, email, password, role }: SeedUserInput) {
         `[db:seed] ${role} account already exists: ${normalizedEmail}`
       );
     }
-    return;
+    return existing;
   }
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  await User.create({
+  const user = await User.create({
     name,
     email: normalizedEmail,
     passwordHash,
@@ -90,6 +91,7 @@ async function seedUser({ name, email, password, role }: SeedUserInput) {
   });
   console.log(`[db:seed] Created ${role} account: ${normalizedEmail}`);
   console.log(`[db:seed] Password: ${password}`);
+  return user;
 }
 
 async function seedServices() {
@@ -113,6 +115,50 @@ async function seedProducts() {
     }
     await Product.create(product);
     console.log(`[db:seed] Created product: ${product.name}`);
+  }
+}
+
+// Give the demo customer a small purchase history so the "My Purchases"
+// page has data on a fresh database. Skipped once the customer has any
+// purchases, so re-running the seed never duplicates rows.
+async function seedPurchases(customerId: mongoose.Types.ObjectId) {
+  const existingCount = await Purchase.countDocuments({ userId: customerId });
+  if (existingCount > 0) {
+    console.log(
+      `[db:seed] Customer already has ${existingCount} purchase(s); skipping sample purchases.`
+    );
+    return;
+  }
+
+  const product = await Product.findOne({ name: SAMPLE_PRODUCTS[0].name });
+  const service = await Service.findOne({ name: SAMPLE_SERVICES[0].name });
+
+  const samplePurchases = [
+    product && {
+      userId: customerId,
+      itemType: 'product',
+      itemId: product._id,
+      itemName: product.name,
+      unitPrice: product.price,
+      quantity: 2,
+      totalPrice: product.price * 2,
+    },
+    service && {
+      userId: customerId,
+      itemType: 'service',
+      itemId: service._id,
+      itemName: service.name,
+      unitPrice: service.price,
+      quantity: 1,
+      totalPrice: service.price,
+    },
+  ].filter((purchase) => purchase !== null);
+
+  for (const purchase of samplePurchases) {
+    await Purchase.create(purchase);
+    console.log(
+      `[db:seed] Created sample purchase: ${purchase.quantity}x ${purchase.itemName}`
+    );
   }
 }
 
@@ -143,8 +189,16 @@ async function seedDb() {
     role: 'staff',
   });
 
+  const customer = await seedUser({
+    name: process.env.SEED_CUSTOMER_NAME || 'Golden Fur Customer',
+    email: process.env.SEED_CUSTOMER_EMAIL || 'customer@goldenfur.local',
+    password: process.env.SEED_CUSTOMER_PASSWORD || 'ChangeMe123!',
+    role: 'user',
+  });
+
   await seedServices();
   await seedProducts();
+  await seedPurchases(customer._id);
 
   await mongoose.disconnect();
   console.log('[db:seed] Done.');
