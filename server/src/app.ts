@@ -4,6 +4,7 @@ import { authRoutes } from './features/auth/auth.routes.js';
 import { adminRoutes } from './features/admin/admin.routes.js';
 import { servicesRoutes } from './features/services/services.routes.js';
 import { productsRoutes } from './features/products/products.routes.js';
+import { purchasesRoutes } from './features/purchases/purchases.routes.js';
 
 export const app = express();
 
@@ -18,3 +19,4 @@ app.use('/', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/', servicesRoutes);
 app.use('/', productsRoutes);
+app.use('/', purchasesRoutes);
