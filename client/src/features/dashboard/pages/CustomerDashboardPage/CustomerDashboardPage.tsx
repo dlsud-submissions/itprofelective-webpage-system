@@ -7,6 +7,17 @@ export function CustomerDashboardPage() {
       roleLabel="Customer"
       links={[
         {
+          to: '/dashboard/shop',
+          label: 'Shop',
+          description:
+            'Purchase products and book services directly from Golden Fur.',
+        },
+        {
+          to: '/dashboard/purchases',
+          label: 'Purchase History',
+          description: 'Review everything you have purchased and booked.',
+        },
+        {
           to: '/catalog/services',
           label: 'Browse Services',
           description:

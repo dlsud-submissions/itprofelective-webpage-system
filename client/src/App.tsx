@@ -6,6 +6,8 @@ import { LoginPage } from './features/auth/pages/LoginPage/LoginPage';
 import { SignupPage } from './features/auth/pages/SignupPage/SignupPage';
 import { ServicesPage } from './features/catalog/pages/ServicesPage/ServicesPage';
 import { ProductsPage } from './features/catalog/pages/ProductsPage/ProductsPage';
+import { ShopPage } from './features/purchases/pages/ShopPage/ShopPage';
+import { PurchaseHistoryPage } from './features/purchases/pages/PurchaseHistoryPage/PurchaseHistoryPage';
 import { CustomerDashboardPage } from './features/dashboard/pages/CustomerDashboardPage/CustomerDashboardPage';
 import { StaffDashboardPage } from './features/dashboard/pages/StaffDashboardPage/StaffDashboardPage';
 import { AdminDashboardPage } from './features/dashboard/pages/AdminDashboardPage/AdminDashboardPage';
@@ -28,6 +30,24 @@ export default function App() {
               (see server/src/features/admin/admin.routes.ts) can never collide with the
               admin dashboard page the way /services once did with the
               catalog pages. */}
+          {/* Under /dashboard for the same proxy-collision reason: /purchases
+              itself is claimed by the vite.config.ts proxy to the API. */}
+          <Route
+            path="/dashboard/shop"
+            element={
+              <RequireRole role="user">
+                <ShopPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/dashboard/purchases"
+            element={
+              <RequireRole role="user">
+                <PurchaseHistoryPage />
+              </RequireRole>
+            }
+          />
           <Route
             path="/dashboard/customer"
             element={
