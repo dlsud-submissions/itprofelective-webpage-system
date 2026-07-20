@@ -79,6 +79,17 @@
       }
     },
     {
+      "label": "🔄 MongoDB: Schema + Seed",
+      "type": "npm",
+      "script": "db:sync",
+      "path": ".",
+      "presentation": {
+        "group": "mongodb",
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
       "label": "🛠️ Setup: Install All",
       "type": "npm",
       "script": "install:all",

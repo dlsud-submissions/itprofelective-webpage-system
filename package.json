@@ -26,6 +26,7 @@
     "db:reset": "tsx server/scripts/dbReset.ts",
     "db:schema": "tsx server/scripts/dbSchema.ts",
     "db:seed": "tsx server/scripts/dbSeed.ts",
+    "db:sync": "npm run db:schema && npm run db:seed",
     "=== CODE QUALITY ===": "",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,css,scss,less,html,json,md,mdx,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,css,scss,less,html,json,md,mdx,yaml,yml}\"",
